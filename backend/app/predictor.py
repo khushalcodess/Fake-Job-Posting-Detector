@@ -2,10 +2,10 @@ import pickle
 import numpy as np 
 from scipy.sparse import hstack
 
-with open('model.pkl','rb') as f:
+with open('backend/app/model.pkl','rb') as f:
     model = pickle.load(f)
     
-with open('tfidf.pkl','rb') as f:
+with open('backend/app/tfidf.pkl','rb') as f:
     tfidf = pickle.load(f)
     
 ALL_COLUMNS = ['telecommuting', 'has_company_logo', 'has_questions', 
@@ -23,3 +23,44 @@ ALL_COLUMNS = ['telecommuting', 'has_company_logo', 'has_questions',
  'required_education_Some High School Coursework', 'required_education_Unknown', 
  'required_education_Unspecified', 'required_education_Vocational', 
  'required_education_Vocational - Degree', 'required_education_Vocational - HS Diploma']
+
+def predict_job(text, telecommuting, has_logo, has_questions, employment_type, experience, education):
+    
+    # Step 1: Convert text to TF-IDF numbers
+    text_tfidf = tfidf.transform([text])
+    
+    # Step 2: Create empty array of 31 zeros
+    numeric_features = np.zeros(len(ALL_COLUMNS))
+    
+    # Step 3: Fill in simple yes/no features
+    numeric_features[ALL_COLUMNS.index('telecommuting')] = telecommuting
+    numeric_features[ALL_COLUMNS.index('has_company_logo')] = has_logo
+    numeric_features[ALL_COLUMNS.index('has_questions')] = has_questions
+    
+    # Step 4: Turn on correct employment type column
+    emp_col = f'employment_type_{employment_type}'
+    if emp_col in ALL_COLUMNS:
+        numeric_features[ALL_COLUMNS.index(emp_col)] = 1
+    
+    # Step 5: Turn on correct experience column
+    exp_col = f'required_experience_{experience}'
+    if exp_col in ALL_COLUMNS:
+        numeric_features[ALL_COLUMNS.index(exp_col)] = 1
+    
+    # Step 6: Turn on correct education column
+    edu_col = f'required_education_{education}'
+    if edu_col in ALL_COLUMNS:
+        numeric_features[ALL_COLUMNS.index(edu_col)] = 1
+    
+    # Step 7: Combine text + numeric features
+    final_features = hstack([text_tfidf, numeric_features.reshape(1, -1)])
+    
+    # Step 8: Predict
+    prediction = model.predict(final_features)[0]
+    confidence = model.decision_function(final_features)[0]
+    
+    return {
+        'is_fake': bool(prediction),
+        'confidence_score': float(confidence)
+    }
+
