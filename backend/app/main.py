@@ -5,22 +5,24 @@ from predictor import predict_job
 
 app = FastAPI()
 
+# Allow your React frontend to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"]
-    allow_methods=["*"]
-    allow_headers=["*"]
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+# Define what data the frontend will send
 class JobPosting(BaseModel):
     text: str
     telecommuting: int
     has_logo: int
-    has_questions: int 
+    has_questions: int
     employment_type: str
     experience: str
     education: str
-    
+
 @app.post("/predict")
 def predict(job: JobPosting):
     result = predict_job(

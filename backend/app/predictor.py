@@ -2,10 +2,10 @@ import pickle
 import numpy as np 
 from scipy.sparse import hstack
 
-with open('backend/app/model.pkl','rb') as f:
+with open('model.pkl','rb') as f:
     model = pickle.load(f)
     
-with open('backend/app/tfidf.pkl','rb') as f:
+with open('tfidf.pkl','rb') as f:
     tfidf = pickle.load(f)
     
 ALL_COLUMNS = ['telecommuting', 'has_company_logo', 'has_questions', 
